@@ -46,7 +46,6 @@ CinterMakeSinus:
 	clr.l   d0									;  6 2
 	moveq.l #1,d1	; Set cosine to $4000000	;  4 2
 	ror.l   #6,d1								; 20 2
-	moveq 	#3,d2								;  4 2
 	moveq	#46,d3 ; init_j						;  4 2
 	move.w  #CINTER_DEGREES/4-1,d7				;  8 4
 loop:
@@ -70,7 +69,7 @@ loop:
 
 ; Execution time
 ; 18 x 6433 + 12x6432 + 10 + (222222)*4096 + 14x4095+10
-; 299480
+; 299480 cycles
 
 ; Sample parameters:
 ; short length, replength
