@@ -41,32 +41,36 @@ CinterMakeSinus:
 	; d3 = phase adjuster
 	; d4 = sine/cosine increment (negative)
 	; d7 = loop progress countdown
-	lea 	c_Sinus(a6),a0
-	lea.l 	CINTER_DEGREES/2*2(a0),a1
-	clr.l   d0
-	moveq.l #1,d1	; Set cosine to $4000000
-	ror.l   #6,d1
-	moveq 	#3,d2
-	moveq	#46,d3 ; init_j
-	move.w  #CINTER_DEGREES/4-1,d7
+	lea 	c_Sinus(a6),a0						;  8 4
+	lea.l 	CINTER_DEGREES/2*2(a0),a1			;  8 4
+	clr.l   d0									;  6 2
+	moveq.l #1,d1	; Set cosine to $4000000	;  4 2
+	ror.l   #6,d1								; 20 2
+	moveq 	#3,d2								;  4 2
+	moveq	#46,d3 ; init_j						;  4 2
+	move.w  #CINTER_DEGREES/4-1,d7				;  8 4
 loop:
-	move.l 	d1,d2	; Add cos/4096 to sine
-	swap  	d2
-	rol.l  	#4,d2
-	add.l  	d2,d0
-	move.l 	d0,d2	; Subtract sin/4096 from cos
-	swap   	d2
-	rol.l  	#4,d2
-	sub.l  	d2,d1
-	add.b 	#163,d3	; Increment phase adjuster
-	bcc   	loop
-	move.w  d2,d4
-	neg.w   d4
-	move.w 	d4,CINTER_DEGREES/2*2-2(a0)
-	move.w 	d2,(a0)+
-	move.w 	d2,-(a1)
-	move.w 	d4,CINTER_DEGREES/2*2(a1)
-	dbra   	d7,loop
+	move.l 	d1,d2	; Add cos/4096 to sine		;  4 2 x 6433
+	swap  	d2									;  4 2 x 6433
+	rol.l  	#4,d2								; 16 2 x 6433
+	add.l  	d2,d0								;  8 2 x 6433
+	move.l 	d0,d2	; Subtract sin/4096 from cos;  4 2 x 6433
+	swap   	d2									;  4 2 x 6433
+	rol.l  	#4,d2								; 16 2 x 6433
+	sub.l  	d2,d1								;  8 2 x 6433
+	add.b 	#163,d3	; Increment phase adjuster	;  8 2 x 6433
+	bcc   	loop								; 10/12 4  x 6432 + 1
+	move.w  d2,d4								;  4 2 x 4096
+	neg.w   d4									;  4 2 x 4096
+	move.w 	d4,CINTER_DEGREES/2*2-2(a0)			; 12 2 x 4096
+	move.w 	d2,(a0)+							;  8 2 x 4096
+	move.w 	d2,-(a1)							;  8 2 x 4096
+	move.w 	d4,CINTER_DEGREES/2*2(a1)			; 12 2 x 4096
+	dbra   	d7,loop								; 10/12/14 4 x 4095 + 1
+
+; Execution time
+; 18 x 6433 + 12x6432 + 10 + (222222)*4096 + 14x4095+10
+; 299480
 
 ; Sample parameters:
 ; short length, replength
