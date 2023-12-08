@@ -34,43 +34,39 @@ CinterInit:
 	; instrument space before or after CinterInit is called.
 
 CinterMakeSinus:
-	lea	c_Sinus(a6),a0
-	addq.l	#2,a0
-	lea.l	CINTER_DEGREES/2*2-2(a0),a1
-
-	moveq.l	#1,d7
-.loop:
-	move.w	d7,d1
-	mulu.w	d7,d1
-	lsr.l	#8,d1
-
-	move.w	#2373,d0
-	mulu.w	d1,d0
-	swap.w	d0
-	neg.w	d0
-	add.w	#21073,d0
-	mulu.w	d1,d0
-	swap.w	d0
-	neg.w	d0
-	add.w	#51469,d0
-	mulu.w	d7,d0
-	lsr.l	#8,d0
-	lsr.l	#5,d0
-
-	move.w	d0,(a0)+
-	move.w	d0,-(a1)
-	neg.w	d0
-	move.w	d0,CINTER_DEGREES/2*2(a1)
-	move.w	d0,CINTER_DEGREES/2*2-2(a0)
-
-	addq.w	#1,d7
-	cmp.w	#CINTER_DEGREES/4,d7
-	blt.b	.loop
-
-	neg.w	d0
-	move.w	d0,-(a1)
-	neg.w	d0
-	move.w	d0,CINTER_DEGREES/2*2(a1)
+	; Fill sine table using a modified coupled form oscillator.
+	; d0 = sine value
+	; d1 = cosine value
+	; d2 = sine/cosine increment
+	; d3 = phase adjuster
+	; d4 = sine/cosine increment (negative)
+	; d7 = loop progress countdown
+	lea 	c_Sinus(a6),a0
+	lea.l 	CINTER_DEGREES/2*2(a0),a1
+	clr.l   d0
+	moveq.l #1,d1	; Set cosine to $4000000
+	ror.l   #6,d1
+	moveq 	#3,d2
+	moveq	#46,d3 ; init_j
+	move.w  #CINTER_DEGREES/4-1,d7
+loop:
+	move.l 	d1,d2	; Add cos/4096 to sine
+	swap  	d2
+	rol.l  	#4,d2
+	add.l  	d2,d0
+	move.l 	d0,d2	; Subtract sin/4096 from cos
+	swap   	d2
+	rol.l  	#4,d2
+	sub.l  	d2,d1
+	add.b 	#163,d3	; Increment phase adjuster
+	bcc   	loop
+	move.w  d2,d4
+	neg.w   d4
+	move.w 	d4,CINTER_DEGREES/2*2-2(a0)
+	move.w 	d2,(a0)+
+	move.w 	d2,-(a1)
+	move.w 	d4,CINTER_DEGREES/2*2(a1)
+	dbra   	d7,loop
 
 ; Sample parameters:
 ; short length, replength
