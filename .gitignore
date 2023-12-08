@@ -2,3 +2,5 @@
 test
 cinter/Cargo.lock
 cinter/target
+gui/Cargo.lock
+gui/target
